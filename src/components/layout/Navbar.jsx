@@ -1,4 +1,5 @@
-import { useState } from "react";
+
+import { useState, useEffect } from "react";
 import { Menu, X, Download } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -11,9 +12,9 @@ const navigation = [
   { name: "About", href: "#about" },
   { name: "Skills", href: "#skills" },
   { name: "Experience", href: "#experience" },
-  { name: "Certification", href: "#certifications" },
   { name: "Projects", href: "#projects" },
   { name: "Education", href: "#education" },
+  { name: "Certification", href: "#certifications" },
   { name: "Contact", href: "#contact" },
 ];
 
@@ -45,18 +46,86 @@ const brandName = "SAIF UR REHMAN";
 
 function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
+  const [activeSection, setActiveSection] = useState("#about");
 
   const closeMenu = () => {
     setIsOpen(false);
+  };
+
+  // ==========================================
+  // Scroll Spy
+  // Detect active section based on scroll position
+  // ==========================================
+  useEffect(() => {
+    const updateActiveSection = () => {
+      const scrollPosition = window.scrollY;
+      const navbarHeight = 100;
+
+      let currentSection = navigation[0].href;
+
+      for (const item of navigation) {
+        const section = document.querySelector(item.href);
+
+        if (!section) continue;
+
+        const sectionTop =
+          section.getBoundingClientRect().top +
+          window.scrollY;
+
+        if (
+          scrollPosition + navbarHeight >= sectionTop
+        ) {
+          currentSection = item.href;
+        }
+      }
+
+      setActiveSection(currentSection);
+    };
+
+    // Run immediately on page load
+    updateActiveSection();
+
+    // Run whenever the user scrolls
+    window.addEventListener(
+      "scroll",
+      updateActiveSection,
+      { passive: true }
+    );
+
+    // Also update after resizing
+    window.addEventListener(
+      "resize",
+      updateActiveSection
+    );
+
+    return () => {
+      window.removeEventListener(
+        "scroll",
+        updateActiveSection
+      );
+
+      window.removeEventListener(
+        "resize",
+        updateActiveSection
+      );
+    };
+  }, []);
+
+  // ==========================================
+  // Navigation Click
+  // ==========================================
+  const handleNavigation = (href) => {
+    setActiveSection(href);
+    closeMenu();
   };
 
   return (
     <header className="fixed inset-x-0 top-0 z-50 border-b border-white/10 bg-[#050505]/80 backdrop-blur-xl">
       <nav className="mx-auto flex h-20 max-w-7xl items-center justify-between px-6 lg:px-8">
 
-        {/* ================================
+        {/* =====================================
             Logo & Brand
-        ================================= */}
+        ====================================== */}
         <a
           href="#home"
           onClick={closeMenu}
@@ -79,10 +148,8 @@ function Navbar() {
 
           <div className="flex flex-col justify-center">
 
-            {/* ================================
-                Animated Brand Name
-            ================================= */}
-            <div className="flex items-center text-xl font-extrabold uppercase font-sans">
+            {/* Animated Brand Name */}
+            <div className="flex items-center font-sans text-xl font-extrabold uppercase">
 
               {brandName.split("").map((letter, index) => {
                 const isSpace = letter === " ";
@@ -111,20 +178,21 @@ function Navbar() {
                     }}
                     className={`
                       inline-block
-                      ${isSaif
-                        ? `
-                          bg-gradient-to-r
-                          from-blue-500
-                          via-cyan-400
-                          to-sky-300
-                          bg-clip-text
-                          text-transparent
-                          drop-shadow-[0_0_12px_rgba(34,211,238,0.3)]
-                        `
-                        : `
-                          text-white
-                          tracking-widest
-                        `
+                      ${
+                        isSaif
+                          ? `
+                            bg-gradient-to-r
+                            from-blue-500
+                            via-cyan-400
+                            to-sky-300
+                            bg-clip-text
+                            text-transparent
+                            drop-shadow-[0_0_12px_rgba(34,211,238,0.3)]
+                          `
+                          : `
+                            text-white
+                            tracking-widest
+                          `
                       }
                     `}
                   >
@@ -135,9 +203,7 @@ function Navbar() {
 
             </div>
 
-            {/* ================================
-                Subtitle / Role Tagline
-            ================================= */}
+            {/* Subtitle */}
             <div className="mt-0.5 flex items-center gap-1.5">
 
               <span
@@ -167,44 +233,79 @@ function Navbar() {
           </div>
         </a>
 
-        {/* ================================
+        {/* =====================================
             Desktop Navigation
-        ================================= */}
-        <div className="hidden items-center gap-6 lg:flex">
+        ====================================== */}
+        <div className="hidden items-center gap-3 lg:flex">
 
-          {navigation.map((item) => (
-            <a
-              key={item.name}
-              href={item.href}
-              className="
-                relative
-                text-sm
-                font-medium
-                text-gray-400
-                transition-colors
-                duration-200
-                hover:text-white
+          {navigation.map((item) => {
+            const isActive =
+              activeSection === item.href;
 
-                after:absolute
-                after:-bottom-2
-                after:left-0
-                after:h-px
-                after:w-0
-                after:bg-cyan-400
-                after:transition-all
-                after:duration-300
-                hover:after:w-full
-              "
-            >
-              {item.name}
-            </a>
-          ))}
+            return (
+              <a
+                key={item.name}
+                href={item.href}
+                onClick={() =>
+                  handleNavigation(item.href)
+                }
+                className={`
+                  relative
+                  rounded-lg
+                  px-3
+                  py-2
+                  text-sm
+                  font-medium
+                  transition-all
+                  duration-300
+
+                  ${
+                    isActive
+                      ? `
+                        bg-cyan-400/10
+                        text-cyan-400
+                        shadow-[0_0_18px_rgba(34,211,238,0.08)]
+                      `
+                      : `
+                        text-gray-400
+                        hover:bg-white/5
+                        hover:text-white
+                      `
+                  }
+
+                  after:absolute
+                  after:-bottom-1
+                  after:left-1/2
+                  after:h-[2px]
+                  after:-translate-x-1/2
+                  after:rounded-full
+                  after:bg-cyan-400
+                  after:transition-all
+                  after:duration-300
+
+                  ${
+                    isActive
+                      ? "after:w-8 after:shadow-[0_0_8px_rgba(34,211,238,0.8)]"
+                      : "after:w-0"
+                  }
+
+                  ${
+                    !isActive
+                      ? "hover:after:w-8"
+                      : ""
+                  }
+                `}
+              >
+                {item.name}
+              </a>
+            );
+          })}
 
         </div>
 
-        {/* ================================
+        {/* =====================================
             Desktop Social Links + CV
-        ================================= */}
+        ====================================== */}
         <div className="hidden items-center gap-3 lg:flex">
 
           {/* Social Icons */}
@@ -259,7 +360,6 @@ function Navbar() {
                     ${social.color}
                   `}
                 >
-
                   {/* Pulsing Border */}
                   <span
                     className="
@@ -287,7 +387,6 @@ function Navbar() {
                       group-hover:scale-110
                     "
                   />
-
                 </motion.a>
               );
             })}
@@ -325,12 +424,14 @@ function Navbar() {
 
         </div>
 
-        {/* ================================
+        {/* =====================================
             Mobile Menu Button
-        ================================= */}
+        ====================================== */}
         <button
           type="button"
-          onClick={() => setIsOpen((previous) => !previous)}
+          onClick={() =>
+            setIsOpen((previous) => !previous)
+          }
           className="
             inline-flex
             h-10
@@ -363,9 +464,9 @@ function Navbar() {
 
       </nav>
 
-      {/* ================================
+      {/* =====================================
           Mobile Navigation
-      ================================= */}
+      ====================================== */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
@@ -391,34 +492,79 @@ function Navbar() {
               bg-[#050505]
             "
           >
+
             <div className="mx-auto max-w-7xl px-6 py-5">
 
               <div className="flex flex-col">
 
                 {/* Mobile Navigation Links */}
-                {navigation.map((item) => (
-                  <a
-                    key={item.name}
-                    href={item.href}
-                    onClick={closeMenu}
-                    className="
-                      border-b
-                      border-white/5
-                      py-4
-                      text-sm
-                      font-medium
-                      text-gray-400
-                      transition-colors
-                      hover:text-white
-                    "
-                  >
-                    {item.name}
-                  </a>
-                ))}
+                {navigation.map((item) => {
+                  const isActive =
+                    activeSection === item.href;
 
-                {/* ================================
-                    Mobile Social Links
-                ================================= */}
+                  return (
+                    <a
+                      key={item.name}
+                      href={item.href}
+                      onClick={() =>
+                        handleNavigation(item.href)
+                      }
+                      className={`
+                        relative
+                        border-b
+                        border-white/5
+                        py-4
+                        pl-3
+                        text-sm
+                        font-medium
+                        transition-all
+                        duration-300
+
+                        ${
+                          isActive
+                            ? `
+                              bg-cyan-400/10
+                              text-cyan-400
+                            `
+                            : `
+                              text-gray-400
+                              hover:bg-white/5
+                              hover:text-white
+                            `
+                        }
+
+                        ${
+                          isActive
+                            ? "border-l-2 border-l-cyan-400"
+                            : "border-l-2 border-l-transparent"
+                        }
+                      `}
+                    >
+                      <div className="flex items-center justify-between">
+
+                        <span>
+                          {item.name}
+                        </span>
+
+                        {isActive && (
+                          <span
+                            className="
+                              mr-2
+                              h-1.5
+                              w-1.5
+                              rounded-full
+                              bg-cyan-400
+                              shadow-[0_0_8px_rgba(34,211,238,0.9)]
+                            "
+                          />
+                        )}
+
+                      </div>
+                    </a>
+                  );
+                })}
+
+                {/* Mobile Social Links */}
                 <div className="flex items-center justify-center gap-4 py-6">
 
                   {socialLinks.map((social, index) => {
@@ -470,7 +616,6 @@ function Navbar() {
                           ${social.color}
                         `}
                       >
-
                         {/* Animated Border */}
                         <span
                           className="
@@ -498,7 +643,6 @@ function Navbar() {
                             group-hover:scale-110
                           "
                         />
-
                       </motion.a>
                     );
                   })}
@@ -528,12 +672,14 @@ function Navbar() {
                   "
                 >
                   <Download size={16} />
+                  <Download size={16} />
                   Download CV
                 </a>
 
               </div>
 
             </div>
+
           </motion.div>
         )}
       </AnimatePresence>
@@ -543,3 +689,4 @@ function Navbar() {
 }
 
 export default Navbar;
+
