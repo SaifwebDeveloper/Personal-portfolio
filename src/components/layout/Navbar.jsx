@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Menu, X, Download } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -54,7 +53,6 @@ function Navbar() {
 
   // ==========================================
   // Scroll Spy
-  // Detect active section based on scroll position
   // ==========================================
   useEffect(() => {
     const updateActiveSection = () => {
@@ -69,12 +67,9 @@ function Navbar() {
         if (!section) continue;
 
         const sectionTop =
-          section.getBoundingClientRect().top +
-          window.scrollY;
+          section.getBoundingClientRect().top + window.scrollY;
 
-        if (
-          scrollPosition + navbarHeight >= sectionTop
-        ) {
+        if (scrollPosition + navbarHeight >= sectionTop) {
           currentSection = item.href;
         }
       }
@@ -82,21 +77,13 @@ function Navbar() {
       setActiveSection(currentSection);
     };
 
-    // Run immediately on page load
     updateActiveSection();
 
-    // Run whenever the user scrolls
-    window.addEventListener(
-      "scroll",
-      updateActiveSection,
-      { passive: true }
-    );
+    window.addEventListener("scroll", updateActiveSection, {
+      passive: true,
+    });
 
-    // Also update after resizing
-    window.addEventListener(
-      "resize",
-      updateActiveSection
-    );
+    window.addEventListener("resize", updateActiveSection);
 
     return () => {
       window.removeEventListener(
@@ -112,11 +99,40 @@ function Navbar() {
   }, []);
 
   // ==========================================
-  // Navigation Click
+  // Smooth Navigation
+  // Works on Desktop + Mobile
   // ==========================================
-  const handleNavigation = (href) => {
+  const handleNavigation = (href, event) => {
+    event?.preventDefault();
+
+    const section = document.querySelector(href);
+
+    if (!section) {
+      closeMenu();
+      return;
+    }
+
     setActiveSection(href);
-    closeMenu();
+
+    // Close mobile menu first
+    setIsOpen(false);
+
+    // Small delay so the mobile menu closes smoothly
+    setTimeout(() => {
+      const navbarHeight = 80;
+
+      const sectionTop =
+        section.getBoundingClientRect().top +
+        window.scrollY;
+
+      const targetPosition =
+        sectionTop - navbarHeight;
+
+      window.scrollTo({
+        top: targetPosition,
+        behavior: "smooth",
+      });
+    }, 100);
   };
 
   return (
@@ -128,11 +144,19 @@ function Navbar() {
         ====================================== */}
         <a
           href="#home"
-          onClick={closeMenu}
+          onClick={(event) => {
+            event.preventDefault();
+
+            setIsOpen(false);
+
+            window.scrollTo({
+              top: 0,
+              behavior: "smooth",
+            });
+          }}
           className="group flex items-center gap-3"
           aria-label="Saif Ur Rehman home"
         >
-          {/* Logo */}
           <img
             src="/portfolio_logo.png"
             alt="Saif Ur Rehman Logo"
@@ -205,7 +229,6 @@ function Navbar() {
 
             {/* Subtitle */}
             <div className="mt-0.5 flex items-center gap-1.5">
-
               <span
                 className="
                   text-[10px]
@@ -227,7 +250,6 @@ function Navbar() {
                   animate-pulse
                 "
               />
-
             </div>
 
           </div>
@@ -237,17 +259,15 @@ function Navbar() {
             Desktop Navigation
         ====================================== */}
         <div className="hidden items-center gap-3 lg:flex">
-
           {navigation.map((item) => {
-            const isActive =
-              activeSection === item.href;
+            const isActive = activeSection === item.href;
 
             return (
               <a
                 key={item.name}
                 href={item.href}
-                onClick={() =>
-                  handleNavigation(item.href)
+                onClick={(event) =>
+                  handleNavigation(item.href, event)
                 }
                 className={`
                   relative
@@ -300,7 +320,6 @@ function Navbar() {
               </a>
             );
           })}
-
         </div>
 
         {/* =====================================
@@ -308,9 +327,7 @@ function Navbar() {
         ====================================== */}
         <div className="hidden items-center gap-3 lg:flex">
 
-          {/* Social Icons */}
           <div className="flex items-center gap-2">
-
             {socialLinks.map((social, index) => {
               const Icon = social.icon;
 
@@ -321,7 +338,6 @@ function Navbar() {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={social.name}
-
                   animate={{
                     y: [0, -3, 0],
                     rotate: [
@@ -330,20 +346,17 @@ function Navbar() {
                       0,
                     ],
                   }}
-
                   whileHover={{
                     scale: 1.15,
                     y: -5,
                     rotate: 3,
                   }}
-
                   transition={{
                     duration: 3,
                     repeat: Infinity,
                     ease: "easeInOut",
                     delay: index * 0.25,
                   }}
-
                   className={`
                     group
                     relative
@@ -360,7 +373,6 @@ function Navbar() {
                     ${social.color}
                   `}
                 >
-                  {/* Pulsing Border */}
                   <span
                     className="
                       pointer-events-none
@@ -390,10 +402,9 @@ function Navbar() {
                 </motion.a>
               );
             })}
-
           </div>
 
-          {/* Download CV */}
+          {/* Desktop Download CV */}
           <a
             href="/resume.pdf"
             download
@@ -421,7 +432,6 @@ function Navbar() {
             <Download size={16} />
             Download CV
           </a>
-
         </div>
 
         {/* =====================================
@@ -492,12 +502,12 @@ function Navbar() {
               bg-[#050505]
             "
           >
-
             <div className="mx-auto max-w-7xl px-6 py-5">
-
               <div className="flex flex-col">
 
-                {/* Mobile Navigation Links */}
+                {/* =================================
+                    Mobile Navigation Links
+                ================================== */}
                 {navigation.map((item) => {
                   const isActive =
                     activeSection === item.href;
@@ -506,11 +516,15 @@ function Navbar() {
                     <a
                       key={item.name}
                       href={item.href}
-                      onClick={() =>
-                        handleNavigation(item.href)
+                      onClick={(event) =>
+                        handleNavigation(
+                          item.href,
+                          event
+                        )
                       }
                       className={`
                         relative
+                        cursor-pointer
                         border-b
                         border-white/5
                         py-4
@@ -525,18 +539,16 @@ function Navbar() {
                             ? `
                               bg-cyan-400/10
                               text-cyan-400
+                              border-l-2
+                              border-l-cyan-400
                             `
                             : `
+                              border-l-2
+                              border-l-transparent
                               text-gray-400
                               hover:bg-white/5
                               hover:text-white
                             `
-                        }
-
-                        ${
-                          isActive
-                            ? "border-l-2 border-l-cyan-400"
-                            : "border-l-2 border-l-transparent"
                         }
                       `}
                     >
@@ -564,7 +576,9 @@ function Navbar() {
                   );
                 })}
 
-                {/* Mobile Social Links */}
+                {/* =================================
+                    Mobile Social Links
+                ================================== */}
                 <div className="flex items-center justify-center gap-4 py-6">
 
                   {socialLinks.map((social, index) => {
@@ -577,7 +591,6 @@ function Navbar() {
                         target="_blank"
                         rel="noopener noreferrer"
                         aria-label={social.name}
-
                         animate={{
                           y: [0, -3, 0],
                           rotate: [
@@ -586,20 +599,17 @@ function Navbar() {
                             0,
                           ],
                         }}
-
                         whileHover={{
                           scale: 1.15,
                           y: -5,
                           rotate: 3,
                         }}
-
                         transition={{
                           duration: 3,
                           repeat: Infinity,
                           ease: "easeInOut",
                           delay: index * 0.25,
                         }}
-
                         className={`
                           group
                           relative
@@ -616,7 +626,6 @@ function Navbar() {
                           ${social.color}
                         `}
                       >
-                        {/* Animated Border */}
                         <span
                           className="
                             pointer-events-none
@@ -646,10 +655,11 @@ function Navbar() {
                       </motion.a>
                     );
                   })}
-
                 </div>
 
-                {/* Mobile Download CV */}
+                {/* =================================
+                    Mobile Download CV
+                ================================== */}
                 <a
                   href="/resume.pdf"
                   download
@@ -672,21 +682,16 @@ function Navbar() {
                   "
                 >
                   <Download size={16} />
-                  <Download size={16} />
                   Download CV
                 </a>
 
               </div>
-
             </div>
-
           </motion.div>
         )}
       </AnimatePresence>
-
     </header>
   );
 }
 
 export default Navbar;
-
